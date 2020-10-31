@@ -1,3 +1,7 @@
 .cache
 .idea
 *.json
+*.html
+*.csv
+*.xlsx
+test.py
