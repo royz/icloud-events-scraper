@@ -11,6 +11,26 @@ def parse_pn(pn: str):
     return pn
 
 
+def parse_phone(num):
+    num = num.replace(' ', '').replace('-', '').strip().removeprefix('+')
+
+    if num.startswith('0'):
+        num = '+46 ' + num[1:]
+    elif num.startswith('46'):
+        num = '+46 ' + num[2:]
+    print(num)
+    return num
+
+
+def parse_address(addr):
+    return ' '.join(addr.split())
+
+
+def parse_header(header):
+    new_hd = header.replace('*', '').replace('#', '').strip()
+    return new_hd
+
+
 with open('timewave.json', encoding='utf-8-sig') as f:
     data = json.load(f)
 FROM = ['från 1', 'från1', 'från', 'adress', 'stopp 1', 'adress 1', 'adress1', 'stopp1', 'stopp']
@@ -67,7 +87,11 @@ for event in data:
                 # regex: (0|46|\+)[0-9- ]{6,}
                 phones = re.findall(r'\b(0|46)([0-9- ]{6,})\b', line)
                 if len(phones) > 0:
-                    phone = ' '.join(phones[0]).strip().removesuffix('-').strip()
+                    phn = ' '.join(phones[0]).strip().removesuffix('-').replace(' ', '').strip()
+                    if '775552222' in phn or '81214410' in phn:
+                        pass
+                    else:
+                        phone = ' '.join(phones[0]).strip().removesuffix('-').strip()
 
             # get fran
             if not fran:
@@ -97,8 +121,8 @@ for event in data:
             col10 = 'not completed'
 
         parsed_data.append([
-            event['bid'], title, name, user_number, email, date, fran.replace('\n', ' '),
-            till.replace('\n', ' '), phone, col9, col10, col11
+            event['bid'], parse_header(title), name, user_number, email, date, parse_address(fran),
+            parse_address(till), parse_phone(phone), col9, col10, col11
         ])
     except:
         pass
