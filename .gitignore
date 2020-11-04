@@ -4,4 +4,4 @@
 *.html
 *.csv
 *.xlsx
-test.py
+test*.py

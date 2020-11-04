@@ -1,34 +1,53 @@
 import requests
+import datetime
+import os
+from dateutil import relativedelta
 
-cookies = {
-    'ext_name': 'ojplmecpdpgccookcobabopnaifgidhf',
-    'timewave_session': '5f0dbe5d98fb48fe5757f7b8a136be7a58eadc57%2BQf5HLphUniUlJriagCLxUFb5GZz2zKewHsXH9Pqo',
-    'login-username': 'c6ca35eac8fb0a44cdf7743f789936deaaa24fe4%2BR-test',
-    'session_payload': '281378cc22e200617a69a267a7f28c4ee90bad44%2BeyJpdiI6IldaV1A3QVFYWUZ6SjkxakZCNTFsV1E9PSIsInZhbHVlIjoiUjdsemhGblhYZmgzcXBPck13d1A4SFBLb3ArQkh5bndZeUorT1MySndzQzFpdm5SVWczTnJrS25Nd1dRd3NXbWhtWTN0YU5GU3hLbTYxRk5GT0Z6ZHpuVEZ5MmFlYkMwT0Uxd1V1NGVkMVFydjFNMTk3TTNkUWlUbEt3WUVHM1dEdVlWaWhvdHFGbTNWREs2MjZydnk2TG82a0ZXNU1pUVBMQWxXRGFQYjdUc3IrR0tUR2d4WG85NjRCRThpdEgySVlYblNScTFxXC85RlwvejRvQUdxOEZ0QktLSjhJY0xGbThPNllnS2ZobzZsNzNqbCtFaWN4SkZ0V1JGUFpnUUhZeWJZaExcL25Bc2N1ZDRPMHJkUk1jSmFpNks2QzFBWnBoWkRtV2kyaTRtZkJqbEJzclhSYXRCcVZqeXRXOWxwVTdUVWJjZ0VwejVcL0M2TVFzQlptUW9BcTE1ZlpLbmVBbnN0WFpHXC92aVRtU1B1NXhDdFdveEhjQmJnQnlFQVh4S0ZFbXc3ZDc2U2NWbGZcLzN3Rm5zTlwvRThsK1BsbUZDSUlibXlQYzhJbFZKcVE9IiwibWFjIjoiM2Y4MDc4ZmRmYmFjNjlhNGQyNmE1YzQyOGIzMmUxYTFiZjg3ZWFlYTBkMmM4ODk2MmFmZGExM2Y0YmJmMjI5NCIsInNhbHQiOiI1ZjkxLWRjNGE1Y2YwZSJ9',
-}
 
-headers = {
-    'Connection': 'keep-alive',
-    'Upgrade-Insecure-Requests': '1',
-    'DNT': '1',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-    'Sec-Fetch-Site': 'same-origin',
-    'Sec-Fetch-Mode': 'navigate',
-    'Sec-Fetch-User': '?1',
-    'Sec-Fetch-Dest': 'document',
-    'Referer': 'https://stadjatten.timewave.se/schedule/month?s_date=2020-09-26&z_search=load&pt=0',
-    'Accept-Language': 'en-IN,en-GB;q=0.9,en-US;q=0.8,en;q=0.7,sv;q=0.6',
-}
+def get_page(date):
+    cookies = {
+        'ext_name': 'ojplmecpdpgccookcobabopnaifgidhf',
+        'timewave_session': 'df891fb934fc8ddaa98b898ba20af94b1309ad51%2Bp1JR4t8uDcRKmyKwwd8CWtrgBFHFIEVjclIGPGUd',
+        'login-username': 'c6ca35eac8fb0a44cdf7743f789936deaaa24fe4%2BR-test',
+        'session_payload': '8732d19e065de21954ab2d700928e7b8fcfd47bc%2BeyJpdiI6IkV4dzlnUCtHZ21HVmYxZTc5ZHhtelE9PSIsInZhbHVlIjoiQ3F1XC9MNmlaMkhlbTVGQkYwNHJrdndKb2NieWlUYjVYUkJyWHpGaHlyRFJTVkJXTmpCaWZGWGFVaUx6NzJSbDhoY2M3eGNNMUVUOXlwaHZEM0RlSThleDVDTnJLMG5kMHF3dTBXWUNoWmlUN0tpUHlwRGRqK0pjXC9taEhLVE42SVRSSnFlUlFuK1ZlRFBFT1RVbmZUWjM0UGwxczNJWEs5K0JLdEg0WWdxZ1ZpMmo1UFdaelJheDhqMmpqWnVjeEtVVkZxWVZuVG9MbzFxS1NkdDZTXC9DTW94RVA5Tm1UcG40c1ZkWlJIU200R3RGaElCZHd3Y0Z0TFFNczVjem53VU9jcGRxT1pmTGVRaXlNNVZyNFZmenRxcFJMOFFKQ0MxTTgzSG5QR0xMaTU1SXVXdnZoWUkrc1FFUDFBaDdJQnpFRlhVRU5saGs3dzJcL2MzSXdmQmlpVDVIVmRNbFlRTDJWQzh5S2drOHNwdWFZaW9OcThkak1qVU9VdHBCU3NjZ2cxUUhiQnlWQ3NpNWlqNFRJK1ZDbXhUYzhKekdzUGFFZUh4SXQ1N2hCcDg9IiwibWFjIjoiMmQ3MWJiOTA5ODYzYWU3ODFhMGEwOGNiNWI4MmNhODI3ZDVjYzU1OGRhYWExNTIwNjdhODQ0ZmYyMDg4MzBjYSIsInNhbHQiOiI1ZjkxLWRjNGE1Y2YwZSJ9',
+    }
 
-params = (
-    ('z_search', 'load'),
-    ('pt', '0'),
-    ('s_date', '2020-09-26'),
-)
+    headers = {
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+        'DNT': '1',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+        'Sec-Fetch-Site': 'same-origin',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-User': '?1',
+        'Sec-Fetch-Dest': 'document',
+        'Referer': 'https://stadjatten.timewave.se/schedule/week',
+        'Accept-Language': 'en-IN,en-GB;q=0.9,en-US;q=0.8,en;q=0.7,sv;q=0.6',
+    }
 
-response = requests.get('https://stadjatten.timewave.se/schedule/month', headers=headers, params=params,
-                        cookies=cookies)
+    params = {
+        'z_search': 'load',
+        # 'pt': '44439',
+        's_date': date,
+    }
 
-with open('index.html', 'w', encoding='utf-8') as f:
-    f.write(response.text)
+    response = requests.get('https://stadjatten.timewave.se/schedule/month', headers=headers, params=params,
+                            cookies=cookies)
+    # print(response)
+    with open(f'data2/{date}.html', 'w', encoding='utf-8') as f:
+        f.write(response.text)
+
+
+current_date = datetime.date(day=1, month=1, year=2019)
+end_date = datetime.date(day=2, month=9, year=2020)
+
+while current_date <= end_date:
+    date_str = current_date.strftime('%Y-%m-%d')
+    file_name = f'{date_str}.html'
+    if os.path.exists(file_name):
+        continue
+
+    get_page(date_str)
+    print(file_name, 'saved')
+    current_date = current_date + relativedelta.relativedelta(months=1)

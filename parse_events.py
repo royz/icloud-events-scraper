@@ -16,6 +16,22 @@ def parse_pn(pn: str):
     return pn
 
 
+def parse_phone(num):
+    num = num.replace(' ', '').replace('-', '').strip().removeprefix('+')
+
+    if num.startswith('0'):
+        num = '+46 ' + num[1:]
+    elif num.startswith('46'):
+        num = '+46 ' + num[2:]
+    print(num)
+    return num
+
+
+def parse_header(header):
+    new_hd = header.replace('*', '').replace('#', '').strip()
+    return new_hd
+
+
 with open('ical.json', encoding='utf-8') as f:
     data = json.load(f)
 
@@ -78,9 +94,11 @@ for event in data['Event']:
                 except:
                     pass
         parsed_data.append([
-            guid, title, name, user_number, email, date, address, till, phone, 'städjätten'
+            guid, parse_header(title), name, user_number, email, date, address, till, parse_phone(phone), 'städjätten'
         ])
-    except:
+        print(len(parsed_data))
+    except Exception as e:
+        print(e)
         pass
 
 with open('ical.csv', 'w', encoding='utf-8-sig', newline='') as f:
