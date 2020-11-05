@@ -18,7 +18,6 @@ def parse_phone(num):
         num = '+46 ' + num[1:]
     elif num.startswith('46'):
         num = '+46 ' + num[2:]
-    print(num)
     return num
 
 
@@ -82,13 +81,18 @@ for event in data:
                 if len(emails) > 0:
                     email = emails[0]
 
-            if not phone:
+                    # if it hasn't found a name then set the previous line as the name
+                    if not name:
+                        name = description[i - 1].strip()
+
+            if email and not phone:
+                # the phone number comes after the email. so always check that the email has been found first
                 # get  phone number
                 # regex: (0|46|\+)[0-9- ]{6,}
-                phones = re.findall(r'\b(0|46)([0-9- ]{6,})\b', line)
+                phones = re.findall(r'\b(0|46)([0-9- ]{8,})\b', line)
                 if len(phones) > 0:
                     phn = ' '.join(phones[0]).strip().removesuffix('-').replace(' ', '').strip()
-                    if '775552222' in phn or '81214410' in phn:
+                    if any(num in phn for num in ['775552222', '81214410', '812144130']):
                         pass
                     else:
                         phone = ' '.join(phones[0]).strip().removesuffix('-').strip()
@@ -127,7 +131,15 @@ for event in data:
     except:
         pass
 
+found_data = []
+parsed_data.sort(key=lambda r: len(r[8]))
+
 with open('timewave.csv', 'w', encoding='utf-8-sig', newline='') as f:
     writer = csv.writer(f)
     for row in parsed_data:
-        writer.writerow(row)
+        data_str = ''.join(map(str, row[1:]))
+        if data_str in found_data:
+            pass
+        else:
+            found_data.append(data_str)
+            writer.writerow(row)
